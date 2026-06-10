@@ -1,1 +1,714 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nova">
+<title>Nova</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c26;
+  --border: #2a2a38;
+  --accent: #7c6ef7;
+  --accent2: #a89cf7;
+  --text: #f0effe;
+  --muted: #7a7a9a;
+  --success: #4ade80;
+  --warn: #f59e0b;
+  --danger: #f87171;
+  --gmail: #ea4335;
+  --cal: #4285f4;
+  --sheets: #34a853;
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 100px;
+}
+.header {
+  padding: 52px 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 100;
+  border-bottom: 1px solid var(--border);
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--accent), #c084fc);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.logo-name { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+.logo-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.status-row { display: flex; gap: 6px; }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border);
+  transition: background 0.3s;
+}
+.status-dot.on { background: var(--success); }
+.section-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 20px 20px 10px;
+}
+.quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 16px;
+}
+.quick-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.quick-card:active { transform: scale(0.97); }
+.quick-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.quick-card.gmail::before { background: var(--gmail); }
+.quick-card.cal::before { background: var(--cal); }
+.quick-card.sheets::before { background: var(--sheets); }
+.quick-card.ai::before { background: var(--accent); }
+.card-icon { font-size: 22px; margin-bottom: 8px; }
+.card-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.card-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.chat-container { padding: 0 16px; margin-top: 8px; }
+.chat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 200px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.msg { display: flex; flex-direction: column; gap: 4px; max-width: 88%; }
+.msg.nova { align-self: flex-start; }
+.msg.user { align-self: flex-end; }
+.msg-label { font-size: 10px; color: var(--muted); padding: 0 4px; }
+.msg.user .msg-label { text-align: right; }
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.msg.nova .msg-bubble {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+  color: var(--text);
+}
+.msg.user .msg-bubble {
+  background: var(--accent);
+  border-bottom-right-radius: 4px;
+  color: #fff;
+}
+.typing {
+  display: flex; gap: 4px; align-items: center; padding: 10px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+.typing span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--muted);
+  animation: bounce 1.2s infinite;
+}
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce {
+  0%,60%,100% { transform: translateY(0); }
+  30% { transform: translateY(-5px); }
+}
+.input-area {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  padding: 12px 16px 28px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.input-row { display: flex; gap: 8px; align-items: flex-end; }
+.input-wrap {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  display: flex; align-items: center;
+  padding: 0 6px 0 16px;
+  transition: border-color 0.2s;
+}
+.input-wrap:focus-within { border-color: var(--accent); }
+#chat-input {
+  flex: 1;
+  background: none; border: none; outline: none;
+  color: var(--text);
+  font-size: 15px;
+  padding: 11px 0;
+  resize: none;
+  font-family: inherit;
+  max-height: 100px;
+  line-height: 1.4;
+}
+#chat-input::placeholder { color: var(--muted); }
+.mic-btn, .send-btn {
+  border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.mic-btn { width: 36px; height: 36px; background: var(--surface2); color: var(--muted); font-size: 16px; }
+.mic-btn.listening { background: var(--danger); color: #fff; animation: pulse 1s infinite; }
+.send-btn { width: 44px; height: 44px; background: var(--accent); color: #fff; font-size: 18px; }
+.send-btn:active { transform: scale(0.93); }
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(248,113,113,0); }
+}
+.connections { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.conn-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: all 0.15s;
+}
+.conn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.3s; }
+.conn-dot.on { background: var(--success); }
+.conn-info { flex: 1; }
+.conn-name { font-size: 13px; font-weight: 600; }
+.conn-status { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.conn-btn {
+  font-size: 11px; padding: 5px 12px;
+  border-radius: 20px; border: 1px solid var(--border);
+  background: none; color: var(--accent2); cursor: pointer;
+}
+.conn-btn.done { color: var(--muted); }
+.memory-panel {
+  margin: 0 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.memory-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.memory-row:last-child { border-bottom: none; }
+.memory-key { color: var(--muted); flex-shrink: 0; width: 110px; }
+.memory-val { color: var(--text); text-align: right; font-size: 12px; }
+.action-btn {
+  width: 100%; margin-top: 12px; padding: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--accent2);
+  font-size: 13px; cursor: pointer; transition: all 0.15s;
+}
+.key-wrap {
+  margin: 0 16px 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.key-wrap label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 8px; }
+.key-row { display: flex; gap: 8px; }
+.key-field {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-size: 13px; padding: 9px 12px; outline: none; font-family: monospace;
+}
+.key-field:focus { border-color: var(--accent); }
+.key-save {
+  padding: 9px 16px; background: var(--accent); border: none;
+  border-radius: var(--radius-sm); color: #fff; font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.status-msg { font-size: 11px; margin-top: 8px; }
+.nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: var(--bg); border-top: 1px solid var(--border);
+  display: flex; z-index: 200;
+}
+.nav-tab {
+  flex: 1; padding: 10px 0 18px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; border: none; background: none; color: var(--muted);
+  font-size: 10px; transition: color 0.15s;
+}
+.nav-tab.active { color: var(--accent2); }
+.nav-icon { font-size: 20px; }
+.page { display: none; }
+.page.active { display: block; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    <div>
+      <div class="logo-name">Nova</div>
+      <div class="logo-sub">Your Personal Assistant</div>
+    </div>
+  </div>
+  <div class="status-row">
+    <div class="status-dot" id="dot-ai"></div>
+    <div class="status-dot" id="dot-mem"></div>
+    <div class="status-dot" id="dot-google"></div>
+  </div>
+</div>
+
+<!-- CHAT PAGE -->
+<div class="page active" id="page-chat">
+  <div class="section-label">Quick Actions</div>
+  <div class="quick-grid">
+    <div class="quick-card gmail" onclick="ask('Summarize my unread emails from today and flag anything urgent')">
+      <div class="card-icon">📧</div>
+      <div class="card-title">Email Summary</div>
+      <div class="card-desc">Unread + urgent flags</div>
+    </div>
+    <div class="quick-card cal" onclick="ask('What does my schedule look like today and tomorrow?')">
+      <div class="card-icon">📅</div>
+      <div class="card-title">My Schedule</div>
+      <div class="card-desc">Today + tomorrow</div>
+    </div>
+    <div class="quick-card sheets" onclick="ask('Give me a status update on my leads — who needs follow up today?')">
+      <div class="card-icon">📊</div>
+      <div class="card-title">Lead Status</div>
+      <div class="card-desc">Who needs follow-up</div>
+    </div>
+    <div class="quick-card ai" onclick="ask('Write a follow-up email to a client who toured a home yesterday but has not responded')">
+      <div class="card-icon">✍️</div>
+      <div class="card-title">Draft Follow-up</div>
+      <div class="card-desc">Client email draft</div>
+    </div>
+  </div>
+  <div class="section-label">Nova</div>
+  <div class="chat-container">
+    <div class="chat-box" id="chat-box">
+      <div class="msg nova">
+        <div class="msg-label">Nova</div>
+        <div class="msg-bubble">Hey Michael! I'm Nova. Add your API key in the Connect tab and load your GitHub memory to get started. What do you need?</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONNECT PAGE -->
+<div class="page" id="page-connect">
+  <div class="section-label">Anthropic API Key</div>
+  <div class="key-wrap">
+    <label>Stored locally on your device — never shared</label>
+    <div class="key-row">
+      <input class="key-field" type="password" id="inp-apikey" placeholder="sk-ant-..." />
+      <button class="key-save" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+
+  <div class="section-label">GitHub Memory</div>
+  <div class="key-wrap">
+    <label>Your context.json repo path</label>
+    <div class="key-row">
+      <input class="key-field" type="text" id="inp-repo" placeholder="username/Nova-Memory" />
+      <button class="key-save" onclick="loadGithubMemory()">Load</button>
+    </div>
+    <div class="status-msg" id="mem-status"></div>
+  </div>
+
+  <div class="section-label">Google OAuth</div>
+  <div class="key-wrap">
+    <label>Client ID</label>
+    <div class="key-row">
+      <input class="key-field" type="password" id="inp-gcid" placeholder="123456789-abc.apps.googleusercontent.com" />
+    </div>
+    <label style="margin-top:10px;">Client Secret</label>
+    <div class="key-row">
+      <input class="key-field" type="password" id="inp-gcsec" placeholder="GOCSPX-..." />
+      <button class="key-save" onclick="saveGoogleCreds()">Save</button>
+    </div>
+  </div>
+
+  <div class="section-label">Google Apps</div>
+  <div class="connections">
+    <div class="conn-item">
+      <div class="conn-dot" id="cdot-gmail"></div>
+      <div class="conn-info">
+        <div class="conn-name">Gmail</div>
+        <div class="conn-status" id="cstat-gmail">Not connected</div>
+      </div>
+      <button class="conn-btn" id="cbtn-google" onclick="connectGoogle()">Connect all</button>
+    </div>
+    <div class="conn-item">
+      <div class="conn-dot" id="cdot-cal"></div>
+      <div class="conn-info">
+        <div class="conn-name">Google Calendar</div>
+        <div class="conn-status" id="cstat-cal">Not connected</div>
+      </div>
+    </div>
+    <div class="conn-item">
+      <div class="conn-dot" id="cdot-sheets"></div>
+      <div class="conn-info">
+        <div class="conn-name">Google Sheets</div>
+        <div class="conn-status" id="cstat-sheets">Not connected</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MEMORY PAGE -->
+<div class="page" id="page-memory">
+  <div class="section-label">Your Context</div>
+  <div class="memory-panel">
+    <div class="memory-row"><span class="memory-key">Name</span><span class="memory-val" id="mv-name">—</span></div>
+    <div class="memory-row"><span class="memory-key">Location</span><span class="memory-val" id="mv-location">—</span></div>
+    <div class="memory-row"><span class="memory-key">Style</span><span class="memory-val" id="mv-style">—</span></div>
+    <div class="memory-row"><span class="memory-key">Work hours</span><span class="memory-val" id="mv-hours">—</span></div>
+    <div class="memory-row"><span class="memory-key">Priorities</span><span class="memory-val" id="mv-priorities">—</span></div>
+    <div class="memory-row"><span class="memory-key">Loves</span><span class="memory-val" id="mv-loves">—</span></div>
+    <div class="memory-row"><span class="memory-key">Notes</span><span class="memory-val" id="mv-notes">—</span></div>
+    <button class="action-btn" onclick="editOnGithub()">Edit in GitHub →</button>
+  </div>
+
+  <div class="section-label" style="margin-top:8px;">Conversation History</div>
+  <div class="memory-panel">
+    <div style="font-size:13px;color:var(--muted);text-align:center;padding:8px 0;" id="hist-count">No conversations yet</div>
+    <button class="action-btn" onclick="clearChat()">Clear history</button>
+  </div>
+</div>
+
+<!-- INPUT BAR -->
+<div class="input-area" id="input-area">
+  <div class="input-row">
+    <button class="mic-btn" id="mic-btn" onclick="toggleMic()">🎤</button>
+    <div class="input-wrap">
+      <textarea id="chat-input" rows="1" placeholder="Ask Nova anything..." oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+    </div>
+    <button class="send-btn" onclick="sendMsg()">↑</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-tab active" id="tab-chat" onclick="goTo('chat')"><span class="nav-icon">💬</span>Chat</button>
+  <button class="nav-tab" id="tab-connect" onclick="goTo('connect')"><span class="nav-icon">🔗</span>Connect</button>
+  <button class="nav-tab" id="tab-memory" onclick="goTo('memory')"><span class="nav-icon">🧠</span>Memory</button>
+</div>
+
+<script>
+// ── All state lives here, declared before anything uses it ──
+var _apiKey = '';
+var _repo = '';
+var _gcid = '';
+var _gcsec = '';
+var _gtoken = '';
+var _ctx = null;
+var _msgs = [];
+var _typing = null;
+var _listening = false;
+var _recog = null;
+
+// ── Boot ──
+(function init() {
+  try { _apiKey = localStorage.getItem('nv_key') || ''; } catch(e){}
+  try { _repo = localStorage.getItem('nv_repo') || ''; } catch(e){}
+  try { _gcid = localStorage.getItem('nv_gcid') || ''; } catch(e){}
+  try { _gcsec = localStorage.getItem('nv_gcsec') || ''; } catch(e){}
+  try { _gtoken = localStorage.getItem('nv_gtoken') || ''; } catch(e){}
+  try { _ctx = JSON.parse(localStorage.getItem('nv_ctx') || 'null'); } catch(e){}
+  try { _msgs = JSON.parse(localStorage.getItem('nv_msgs') || '[]'); } catch(e){}
+
+  if (_apiKey) { document.getElementById('inp-apikey').value = '••••••••'; dot('dot-ai', true); }
+  if (_repo) { document.getElementById('inp-repo').value = _repo; }
+  if (_gcid) { document.getElementById('inp-gcid').value = '••••••••'; }
+  if (_gcsec) { document.getElementById('inp-gcsec').value = '••••••••'; }
+  if (_ctx) { renderCtx(); dot('dot-mem', true); }
+  if (_gtoken) { setGoogleOn(); }
+  refreshHistCount();
+
+  var p = new URLSearchParams(window.location.search);
+  if (p.get('code')) oauthDone(p.get('code'));
+})();
+
+// ── Nav ──
+function goTo(name) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('input-area').style.display = name === 'chat' ? 'block' : 'none';
+}
+
+// ── Dots ──
+function dot(id, on) {
+  var el = document.getElementById(id);
+  if (el) { if(on) el.classList.add('on'); else el.classList.remove('on'); }
+}
+
+// ── API Key ──
+function saveApiKey() {
+  var v = document.getElementById('inp-apikey').value.trim();
+  if (!v || v.indexOf('•') >= 0) return;
+  _apiKey = v;
+  try { localStorage.setItem('nv_key', _apiKey); } catch(e){}
+  document.getElementById('inp-apikey').value = '••••••••';
+  dot('dot-ai', true);
+  alert('API key saved!');
+}
+
+// ── Google Creds ──
+function saveGoogleCreds() {
+  var cid = document.getElementById('inp-gcid').value.trim();
+  var sec = document.getElementById('inp-gcsec').value.trim();
+  if (cid && cid.indexOf('•') < 0) { _gcid = cid; try{localStorage.setItem('nv_gcid', cid);}catch(e){} }
+  if (sec && sec.indexOf('•') < 0) { _gcsec = sec; try{localStorage.setItem('nv_gcsec', sec);}catch(e){} }
+  alert('Google credentials saved!');
+}
+
+// ── GitHub Memory ──
+function loadGithubMemory() {
+  var repo = document.getElementById('inp-repo').value.trim();
+  if (!repo) return;
+  _repo = repo;
+  try { localStorage.setItem('nv_repo', repo); } catch(e){}
+  var el = document.getElementById('mem-status');
+  el.textContent = 'Loading...';
+  el.style.color = 'var(--muted)';
+  var url = 'https://raw.githubusercontent.com/' + repo + '/main/context.json?nocache=' + Date.now();
+  fetch(url, { cache: 'no-store' })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function(txt) {
+      _ctx = JSON.parse(txt);
+      try { localStorage.setItem('nv_ctx', JSON.stringify(_ctx)); } catch(e){}
+      renderCtx();
+      dot('dot-mem', true);
+      el.textContent = '✓ Memory loaded';
+      el.style.color = 'var(--success)';
+    })
+    .catch(function(err) {
+      el.textContent = 'Failed: ' + err.message;
+      el.style.color = 'var(--danger)';
+    });
+}
+
+function renderCtx() {
+  if (!_ctx) return;
+  document.getElementById('mv-name').textContent = _ctx.name || '—';
+  document.getElementById('mv-location').textContent = _ctx.location || '—';
+  document.getElementById('mv-style').textContent = _ctx.communication_style || '—';
+  document.getElementById('mv-hours').textContent = _ctx.work_hours || '—';
+  var pri = _ctx.priorities;
+  document.getElementById('mv-priorities').textContent = (pri && pri.length) ? pri.join(', ') : '—';
+  var lov = _ctx.things_i_love;
+  document.getElementById('mv-loves').textContent = (lov && lov.length) ? lov.join(', ') : '—';
+  document.getElementById('mv-notes').textContent = _ctx.personal_notes || '—';
+}
+
+function editOnGithub() {
+  if (_repo) window.open('https://github.com/' + _repo + '/edit/main/context.json', '_blank');
+  else alert('Set your GitHub repo in the Connect tab first');
+}
+
+// ── Google OAuth ──
+function connectGoogle() {
+  if (!_gcid) { alert('Save your Google Client ID first'); return; }
+  var scopes = [
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/calendar.readonly',
+    'https://www.googleapis.com/auth/spreadsheets.readonly'
+  ].join(' ');
+  var redirect = encodeURIComponent(window.location.origin + window.location.pathname);
+  var url = 'https://accounts.google.com/o/oauth2/v2/auth'
+    + '?client_id=' + encodeURIComponent(_gcid)
+    + '&redirect_uri=' + redirect
+    + '&response_type=code'
+    + '&scope=' + encodeURIComponent(scopes)
+    + '&access_type=offline&prompt=consent';
+  window.location.href = url;
+}
+
+function oauthDone(code) {
+  window.history.replaceState({}, '', window.location.pathname);
+  if (!_gcid || !_gcsec) { alert('Google credentials missing'); return; }
+  var redirect = window.location.origin + window.location.pathname;
+  fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'code=' + encodeURIComponent(code)
+      + '&client_id=' + encodeURIComponent(_gcid)
+      + '&client_secret=' + encodeURIComponent(_gcsec)
+      + '&redirect_uri=' + encodeURIComponent(redirect)
+      + '&grant_type=authorization_code'
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.access_token) {
+      _gtoken = d.access_token;
+      try { localStorage.setItem('nv_gtoken', _gtoken); } catch(e){}
+      if (d.refresh_token) try { localStorage.setItem('nv_grefresh', d.refresh_token); } catch(e){}
+      setGoogleOn();
+      goTo('chat');
+      addMsg('nova', 'Google connected! Gmail, Calendar, and Sheets are all linked. Try a quick action above.');
+    }
+  })
+  .catch(function(e){ alert('OAuth failed: ' + e.message); });
+}
+
+function setGoogleOn() {
+  ['gmail','cal','sheets'].forEach(function(s) {
+    dot('cdot-' + s, true);
+    var st = document.getElementById('cstat-' + s);
+    if (st) st.textContent = 'Connected';
+  });
+  var btn = document.getElementById('cbtn-google');
+  if (btn) { btn.textContent = 'Connected'; btn.classList.add('done'); }
+  dot('dot-google', true);
+}
+
+// ── Chat ──
+function buildSystem() {
+  var sys = 'You are Nova, a sharp personal AI assistant. Be direct, slightly witty, and never waste the user\'s time. No corporate speak. Give clear next steps.';
+  if (_ctx) sys += '\n\nUser context:\n' + JSON.stringify(_ctx, null, 2);
+  if (_gtoken) sys += '\n\nGoogle apps connected. When user asks about emails or schedule, guide them to paste content for you to analyze.';
+  return sys;
+}
+
+function ask(prompt) {
+  document.getElementById('chat-input').value = prompt;
+  sendMsg();
+}
+
+function sendMsg() {
+  var inp = document.getElementById('chat-input');
+  var txt = inp.value.trim();
+  if (!txt) return;
+  if (!_apiKey) { alert('Add your Anthropic API key in the Connect tab'); return; }
+  inp.value = '';
+  inp.style.height = 'auto';
+  addMsg('user', txt);
+  _msgs.push({ role: 'user', content: txt });
+  showTyping();
+  var payload = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    system: buildSystem(),
+    messages: _msgs.slice(-12)
+  };
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': _apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    hideTyping();
+    if (d.content && d.content[0] && d.content[0].text) {
+      var reply = d.content[0].text;
+      addMsg('nova', reply);
+      _msgs.push({ role: 'assistant', content: reply });
+      if (_msgs.length > 40) _msgs = _msgs.slice(-40);
+      try { localStorage.setItem('nv_msgs', JSON.stringify(_msgs)); } catch(e){}
+      refreshHistCount();
+    } else {
+      addMsg('nova', 'Hmm, something went wrong. Check your API key in Connect.');
+    }
+  })
+  .catch(function(e) {
+    hideTyping();
+    addMsg('nova', 'Connection error: ' + e.message);
+  });
+}
+
+function addMsg(role, text) {
+  var box = document.getElementById('chat-box');
+  var d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.innerHTML = '<div class="msg-label">' + (role === 'nova' ? 'Nova' : 'You') + '</div>'
+    + '<div class="msg-bubble">' + text.replace(/\n/g, '<br>') + '</div>';
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping() {
+  var box = document.getElementById('chat-box');
+  _typing = document.createElement('div');
+  _typing.className = 'msg nova';
+  _typing.innerHTML = '<div class="msg-label">Nova</div><div class="typing"><span></span><span></span><span></span></div>';
+  box.appendChild(_typing);
+  box.scrollTop = box.scrollHeight;
+}
+
+function hideTyping() { if (_typing) { _typing.remove(); _typing = null; } }
+
+// ── Voice ──
+function toggleMic() {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Voice not supported — try Chrome'); return; }
+  if (_listening) { _recog.stop(); return; }
+  _recog = new SR();
+  _recog.lang = 'en-US';
+  _recog.interimResults = false;
+  _recog.onstart = function(){ _listening = true; document.getElementById('mic-btn').classList.add('listening'); };
+  _recog.onresult = function(e){ document.getElementById('chat-input').value = e.results[0][0].transcript; };
+  _recog.onend = function(){ _listening = false; document.getElementById('mic-btn').classList.remove('listening'); };
+  _recog.start();
+}
+
+// ── Helpers ──
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
+function clearChat() { if (confirm('Clear all conversation history?')) { _msgs = []; try{localStorage.removeItem('nv_msgs');}catch(e){} refreshHistCount(); } }
+function refreshHistCount() {
+  var el = document.getElementById('hist-count');
+  if (el) el.textContent = _msgs.length ? Math.floor(_msgs.length / 2) + ' conversations saved' : 'No conversations yet';
+}
+</script>
+</body>
+</html>
