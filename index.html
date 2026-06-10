@@ -274,7 +274,7 @@ var _recog = null;
 
 // ── BOOT ──
 (function init() {
-  try { _apiKey = localStorage.getItem('nv_key') || ''; } catch(e){}
+  try { _apiKey = localStorage.getItem('nv_key') || _apiKey; } catch(e){}
   try { _gtoken = localStorage.getItem('nv_gtoken') || ''; } catch(e){}
   try { _ctx = JSON.parse(localStorage.getItem('nv_ctx') || 'null'); } catch(e){}
   try { _msgs = JSON.parse(localStorage.getItem('nv_msgs') || '[]'); } catch(e){}
