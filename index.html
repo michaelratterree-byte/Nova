@@ -280,7 +280,7 @@ var _recog = null;
   try { _msgs = JSON.parse(localStorage.getItem('nv_msgs') || '[]'); } catch(e){}
 
   if (_apiKey) { document.getElementById('inp-apikey').value = '••••••••'; dot('dot-ai', true); }
-  document.getElementById('inp-repo').value = GITHUB_REPO;loadMem();
+  document.getElementById('inp-repo').value = GITHUB_REPO;
   if (_ctx) { renderCtx(); dot('dot-mem', true); }
   if (_gtoken) { setGoogleOn(); }
   refreshHistCount();
@@ -389,7 +389,7 @@ function setGoogleOn() {
 
 // ── CHAT ──
 function buildSystem() {
-  var sys = "You are Nova, Michael's sharp personal AI assistant. Be direct, slightly witty, never waste his time. No corporate speak. Give clear next steps.";
+  var sys = "You are Nova, Michael's sharp personal AI assistant. Be direct, slightly witty, never waste his time. No corporate speak. Give clear next steps.\n\nSPECIAL ABILITY: You can edit your own code. If Michael asks you to add a feature or change something about yourself, write the complete updated HTML file and call the JavaScript function updateNova(newCode) with the full new HTML as a string. Always confirm with Michael before making changes. When writing code changes, be precise and complete - always output the entire HTML file, not just snippets.";
   if (_ctx) sys += '\n\nMichael context:\n' + JSON.stringify(_ctx, null, 2);
   if (_gtoken) sys += '\n\nGoogle connected. You can read Gmail, Calendar, Sheets via API calls using the token. For now guide Michael to paste content if needed.';
   return sys;
@@ -456,6 +456,44 @@ function toggleMic() {
   _recog.onresult = function(e){ document.getElementById('chat-input').value = e.results[0][0].transcript; };
   _recog.onend = function(){ _listening = false; document.getElementById('mic-btn').classList.remove('listening'); };
   _recog.start();
+}
+
+// ── SELF UPDATE ──
+async function updateNova(newCode) {
+  try {
+    // Get current file SHA
+    var res = await fetch('https://api.github.com/repos/' + NOVA_REPO + '/contents/index.html', {
+      headers: {
+        'Authorization': 'token ' + GITHUB_TOKEN,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    var file = await res.json();
+    var sha = file.sha;
+
+    // Push updated code
+    var updateRes = await fetch('https://api.github.com/repos/' + NOVA_REPO + '/contents/index.html', {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + GITHUB_TOKEN,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Nova self-update',
+        content: btoa(unescape(encodeURIComponent(newCode))),
+        sha: sha
+      })
+    });
+    if (updateRes.ok) {
+      addMsg('nova', "Done! I've updated my own code and pushed it to GitHub. Netlify will redeploy in about 30 seconds. Refresh the page to see the changes.");
+    } else {
+      var err = await updateRes.json();
+      addMsg('nova', 'Update failed: ' + JSON.stringify(err.message));
+    }
+  } catch(e) {
+    addMsg('nova', 'Error updating code: ' + e.message);
+  }
 }
 
 // ── HELPERS ──
