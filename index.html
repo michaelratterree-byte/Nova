@@ -280,7 +280,7 @@ var _recog = null;
   try { _msgs = JSON.parse(localStorage.getItem('nv_msgs') || '[]'); } catch(e){}
 
   if (_apiKey) { document.getElementById('inp-apikey').value = '••••••••'; dot('dot-ai', true); }
-  document.getElementById('inp-repo').value = GITHUB_REPO;
+  document.getElementById('inp-repo').value = GITHUB_REPO;loadMem();
   if (_ctx) { renderCtx(); dot('dot-mem', true); }
   if (_gtoken) { setGoogleOn(); }
   refreshHistCount();
